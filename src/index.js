@@ -39,6 +39,13 @@ function saveState(outputDir, state) {
 // --- Notion helpers ---
 
 function getPlainTitle(page) {
+  // For databases: check top-level title first
+  if (page.object === "database" && page.title) {
+    if (Array.isArray(page.title)) {
+      return page.title.map((t) => t?.plain_text || "").join("");
+    }
+    if (typeof page.title === "string") return page.title;
+  }
   // For pages: find the title property
   const props = page.properties || {};
   for (const [, val] of Object.entries(props)) {
@@ -47,13 +54,6 @@ function getPlainTitle(page) {
       if (Array.isArray(arr)) return arr.map((t) => t.plain_text).join("");
       return "";
     }
-  }
-  // For databases
-  if (page.title) {
-    if (Array.isArray(page.title)) {
-      return page.title.map((t) => t?.plain_text || "").join("");
-    }
-    if (typeof page.title === "string") return page.title;
   }
   return "Untitled";
 }
