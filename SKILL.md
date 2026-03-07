@@ -5,7 +5,17 @@ description: "Sync Notion workspaces to local markdown files. Use when you need 
 
 # Notion Mirror Skill
 
-Local markdown mirror of Notion workspaces. Content lives in the configured output directory (default: `~/repos/notion-content/`) as markdown files with YAML frontmatter.
+Local markdown mirror of Notion workspaces. Content lives at `~/repos/notion-content/` as markdown files with YAML frontmatter.
+
+## Important: Auto-Sync is Running
+
+A system cron syncs every 30 minutes. **Do not run a sync unless explicitly asked.** The local files are always reasonably fresh.
+
+If the user asks you to sync manually:
+```bash
+cd ~/repos/notion-mirror && node src/index.js sync        # incremental
+cd ~/repos/notion-mirror && node src/index.js sync --full  # full re-download
+```
 
 ## When to Use
 
@@ -14,44 +24,39 @@ Local markdown mirror of Notion workspaces. Content lives in the configured outp
 - **Checking page metadata** — frontmatter has ID, URL, last edited time
 - **Cross-referencing** — combine with other local knowledge bases
 
+**Never use the Notion API to read content.** The local mirror has everything. Only use the API for writes (creating/updating pages).
+
 ## Structure
 
 ```
 notion-content/
-├── <workspace>/
+├── personal/
 │   ├── INDEX.md              # All pages and DBs listed
 │   ├── pages/<slug>.md       # Standalone pages
-│   └── databases/<db>/*.md   # One file per DB row
+│   └── databases/
+│       ├── tasks/            # The backlog
+│       ├── pr-triage/
+│       ├── x-content-pipeline/
+│       └── rain-audit-tracker/
+├── st0x/
+│   ├── INDEX.md
+│   ├── pages/
+│   └── databases/
+│       └── bd-targets/       # 752 distribution partners
 ```
 
 ## Frontmatter
 
 Every file has:
-- `id` — Notion page/row ID
+- `id` — Notion page/row ID (use for API write-back)
 - `url` — Direct link to Notion
 - `last_edited` — When the page was last changed in Notion
 - `synced` — When the local copy was last updated
 - Database rows also have all their properties as frontmatter fields
 
-## Running a Sync
-
-```bash
-# Incremental (only changed since last sync)
-cd ~/repos/notion-mirror && node src/index.js sync
-
-# Full re-sync
-cd ~/repos/notion-mirror && node src/index.js sync --full
-```
-
-The sync auto-commits to git, so you can `git log` to see what changed.
-
-## Config
-
-Located at `~/.config/notion-mirror/config.json`. Edit to add/remove workspaces.
-
 ## Tips
 
-- Use `grep -rl "Status.*Urgent" ~/repos/notion-content/` to find urgent tasks
-- Use `git diff HEAD~1` after a sync to see what changed in Notion
-- INDEX.md files list all content with links for quick navigation
-- Frontmatter `id` can be used for Notion API write-back operations
+- `grep -rl "Status.*Urgent" ~/repos/notion-content/personal/databases/tasks/` — find urgent backlog items
+- `grep -r "keyword" ~/repos/notion-content/` — search everything
+- `git -C ~/repos/notion-content log --oneline -5` — see recent sync history
+- `cat /tmp/notion-mirror.log | tail -20` — check cron sync logs
