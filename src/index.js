@@ -450,6 +450,11 @@ async function main() {
         path.join(outputDir, ".gitignore"),
         ".notion-mirror-state.json\n"
       );
+      // Copy AGENTS.md into content repo on first init
+      const agentsSrc = path.join(path.dirname(new URL(import.meta.url).pathname), "..", "AGENTS.content.md");
+      if (fs.existsSync(agentsSrc)) {
+        fs.copyFileSync(agentsSrc, path.join(outputDir, "AGENTS.md"));
+      }
       console.log(`Initialized git repo at ${outputDir}`);
     }
 
