@@ -7,9 +7,14 @@ description: "Sync Notion workspaces to local markdown files. Use when you need 
 
 Local markdown mirror of Notion workspaces. Content lives at `~/repos/notion-content/` as markdown files with YAML frontmatter.
 
-## Important: Auto-Sync is Running
+## Critical: Read-Only Mirror
 
-A system cron syncs every 30 minutes. **Do not run a sync unless explicitly asked.** The local files are always reasonably fresh.
+The content at `~/repos/notion-content/` is **read-only**. A system cron syncs it every 30 minutes. Local edits will be silently overwritten.
+
+- **Never edit files in the content directory.** Not even "just this once."
+- **To update Notion content, use the Notion API.** Every file has frontmatter with `id` (for API calls) and `url` (for linking).
+- **If you don't have API access, say so.** Do not fall back to editing the mirror.
+- **Do not run a sync unless explicitly asked.** The cron handles it.
 
 If the user asks you to sync manually:
 ```bash
