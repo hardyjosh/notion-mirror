@@ -19,6 +19,9 @@ Notion is great for collaboration but terrible for fast local access. API calls 
 # Install deps
 npm install
 
+# Install the OpenClaw skill (optional, for AI agent integration)
+./setup.sh
+
 # Generate config template
 node src/index.js init
 
@@ -60,10 +63,31 @@ node src/index.js sync
 node src/index.js sync --full
 ```
 
+## AI Agent Integration
+
+notion-mirror is designed to work with AI agents (OpenClaw, Claude, etc.). The content repo is **read-only** for agents — they should read from it freely but never write to it.
+
+### How it works
+
+- **`AGENTS.md`** is automatically copied into the content repo on every sync if it's missing. This file tells agents the mirror is read-only and to use the Notion API for writes.
+- **`SKILL.md`** can be installed into an OpenClaw workspace via `./setup.sh`. It teaches agents how to search the mirror and reinforces the read-only rule.
+- **Frontmatter** on every file includes the Notion page `id` and `url`, so agents can reference or link back to the original for write operations.
+
+Upgrading the tool automatically updates the AGENTS.md in the content repo on the next sync.
+
+### Setup script
+
+```bash
+./setup.sh
+```
+
+This copies `SKILL.md` into your OpenClaw workspace skills directory (`~/.openclaw/workspace/skills/notion-mirror/`). It also prints the cron line to add.
+
 ## Output structure
 
 ```
 notion-content/
+├── AGENTS.md                 # Read-only instructions for AI agents
 ├── personal/
 │   ├── INDEX.md
 │   ├── pages/
