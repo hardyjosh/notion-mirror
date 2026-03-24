@@ -21,6 +21,35 @@ function loadConfig() {
   return JSON.parse(fs.readFileSync(CONFIG_PATH, "utf-8"));
 }
 
+// Check if we're running in environment variable mode (GitHub Action)
+function isEnvMode() {
+  return process.env.NOTION_API_KEY && true;
+}
+
+// Build config from environment variables
+function buildEnvConfig() {
+  if (!process.env.NOTION_API_KEY) {
+    console.error("NOTION_API_KEY is required when using environment variable mode");
+    process.exit(1);
+  }
+
+  const outputDir = process.env.NOTION_OUTPUT_DIR || ".";
+  const workspaceName = process.env.NOTION_WORKSPACE_NAME || "default";
+  const subdir = process.env.NOTION_SUBDIR || "";
+  
+  return {
+    outputDir,
+    gitCommit: false, // Always false in action mode
+    workspaces: [
+      {
+        name: workspaceName,
+        apiKey: process.env.NOTION_API_KEY,
+        subdir: subdir
+      }
+    ]
+  };
+}
+
 // --- State ---
 
 function loadState(outputDir) {
@@ -438,8 +467,8 @@ async function main() {
   }
 
   if (command === "sync") {
-    const fullSync = args.includes("--full");
-    const config = loadConfig();
+    const fullSync = args.includes("--full") || process.env.NOTION_FULL_SYNC === "true";
+    const config = isEnvMode() ? buildEnvConfig() : loadConfig();
     const outputDir = config.outputDir.replace("~", process.env.HOME);
 
     // Ensure output dir exists and is a git repo
