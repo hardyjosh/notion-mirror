@@ -1,0 +1,50 @@
+name: 'Notion Mirror'
+description: 'Sync Notion workspace to markdown files in your repository'
+branding:
+  icon: 'refresh-cw'
+  color: 'blue'
+
+inputs:
+  notion-api-key:
+    description: 'Notion integration API key'
+    required: true
+  workspace-name:
+    description: 'Label for the workspace'
+    required: false
+    default: 'default'
+  output-dir:
+    description: 'Directory to write markdown files within the repository'
+    required: false
+    default: '.'
+  subdir:
+    description: 'Subdirectory within output-dir for this workspace'
+    required: false
+    default: ''
+  full-sync:
+    description: 'Force full re-download instead of incremental sync'
+    required: false
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+      working-directory: ${{ github.action_path }}
+      
+    - name: Sync Notion workspace
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      env:
+        NOTION_API_KEY: ${{ inputs.notion-api-key }}
+        NOTION_WORKSPACE_NAME: ${{ inputs.workspace-name }}
+        NOTION_OUTPUT_DIR: ${{ inputs.output-dir }}
+        NOTION_SUBDIR: ${{ inputs.subdir }}
+        NOTION_FULL_SYNC: ${{ inputs.full-sync }}
+      run: node ${{ github.action_path }}/src/index.js sync

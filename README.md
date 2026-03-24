@@ -63,6 +63,44 @@ node src/index.js sync
 node src/index.js sync --full
 ```
 
+## GitHub Action
+
+You can use notion-mirror as a GitHub Action to automatically sync your Notion workspace to a repository on a schedule.
+
+```yaml
+name: Sync Notion
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # Every 30 minutes
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: hardyjosh/notion-mirror@v1
+        with:
+          notion-api-key: ${{ secrets.NOTION_API_KEY }}
+          workspace-name: my-workspace
+          output-dir: ./content
+          
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "sync: notion mirror"
+```
+
+### Action Inputs
+
+- **notion-api-key** (required): Your Notion integration token
+- **workspace-name** (optional, default: `default`): Label for the workspace
+- **output-dir** (optional, default: `.`): Directory to write markdown files
+- **subdir** (optional): Subdirectory within output-dir for this workspace  
+- **full-sync** (optional, default: `false`): Force full re-download
+
+The action handles the sync, your workflow handles git operations. Store your Notion API key in repository secrets.
+
 ## AI Agent Integration
 
 notion-mirror is designed to work with AI agents (OpenClaw, Claude, etc.). The content repo is **read-only** for agents — they should read from it freely but never write to it.
